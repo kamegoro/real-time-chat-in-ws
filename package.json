@@ -1,0 +1,15 @@
+{
+  "name": "real-time-chat-in-ws",
+  "version": "1.0.0",
+  "description": "node.js+Express+Socket.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1"
+  }
+}
