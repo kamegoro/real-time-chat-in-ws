@@ -14,6 +14,8 @@ const onClickCheckbox_CameraMicrophone = () => {
   let bCamera_old = false;
   let bMicrophone_old = false;
 
+  let stream = g_elementVideoLocal.srcObject;
+
   if (stream) {
     trackCamera_old = stream.g_elementVideoTracks()[0];
 
@@ -88,4 +90,34 @@ const onClickCheckbox_CameraMicrophone = () => {
       g_elementCheckboxMicrophone.checked = false;
       return;
     });
+};
+
+// HTML要素へのメディアストリームの設定（もしくは解除。および開始）
+// HTML要素は、「ローカルもしくはリモート」の「videoもしくはaudio」。
+// メディアストリームは、ローカルメディアストリームもしくはリモートメディアストリーム、もしくはnull。
+// メディアストリームには、Videoトラック、Audioトラックの両方もしくは片方のみが含まれる。
+// メディアストリームに含まれるトラックの種別、設定するHTML要素種別は、呼び出し側で対処する。
+const setStreamToElement = (elementMedia, stream) => {
+  // メディアストリームを、メディア用のHTML要素のsrcObjに設定する。
+  // - 古くは、elementVideo.src = URL.createObjectURL( stream ); のように書いていたが、URL.createObjectURL()は、廃止された。
+  //   現在は、elementVideo.srcObject = stream; のように書く。
+  elementMedia.srcObject = stream;
+
+  if (!stream) {
+    // メディアストリームの設定解除の場合は、ここで処理終了
+    return;
+  }
+
+  // 音量
+  if ("VIDEO" === elementMedia.tagName) {
+    // VIDEO：ボリュームゼロ、ミュート
+    elementMedia.volume = 0.0;
+    elementMedia.muted = true;
+  } else if ("AUDIO" === elementMedia.tagName) {
+    // AUDIO：ボリュームあり、ミュートでない
+    elementMedia.volume = 1.0;
+    elementMedia.muted = false;
+  } else {
+    console.error("Unexpected : Unknown ElementTagName : ", elementMedia.tagName);
+  }
 };
