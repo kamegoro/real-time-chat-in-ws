@@ -3,6 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <title>My Video Chat</title>
+    <style type="text/css">
+      input:read-only,
+      textarea:read-only {
+        background-color: #ccc;
+      }
+    </style>
   </head>
   <body>
     <h1>My Video Chat</h1>
@@ -24,6 +30,57 @@
       style="border: 1px solid black"
       autoplay
     ></video>
+
+    <table border="1">
+      <tbody>
+        <tr>
+          <td></td>
+          <td>Offer side</td>
+          <td>Answer side</td>
+        </tr>
+        <tr>
+          <td>OfferSDP</td>
+          <td>
+            <button onclick="onClickButton_CreateOfferSDP()">Create OfferSDP.</button>
+            <br />
+            <textarea
+              id="textarea_offerside_offsersdp"
+              rows="10"
+              cols="40"
+              readonly="readonly"
+            ></textarea>
+          </td>
+          <td>
+            <br />
+            <textarea id="textarea_answerside_offsersdp" rows="10" cols="40"></textarea>
+          </td>
+        </tr>
+        <tr>
+          <td>AnswerSDP</td>
+          <td>
+            <br />
+            <textarea id="textarea_offerside_answersdp" rows="10" cols="40"></textarea
+            ><br />
+            <button onclick="onClickButton_SetAnswerSDPthenChatStarts()">
+              Set AnswerSDP. Then the chat starts.
+            </button>
+          </td>
+          <td>
+            <button onclick="onClickButton_SetOfferSDPandCreateAnswerSDP()">
+              Set OfferSDP and Create AnswerSDP.
+            </button>
+            <br />
+            <textarea
+              id="textarea_answerside_answersdp"
+              rows="10"
+              cols="40"
+              readonly="readonly"
+            ></textarea
+            ><br />
+          </td>
+        </tr>
+      </tbody>
+    </table>
 
     <!-- Script -->
     <script src="./client.js"></script>

@@ -2,8 +2,21 @@
 
 const g_elementCheckboxCamera = document.getElementById("checkbox_camera");
 const g_elementCheckboxMicrophone = document.getElementById("checkbox_microphone");
-
+const g_elementTextareaOfferSideOfferSDP = document.getElementById(
+  "textarea_offerside_offsersdp"
+);
+const g_elementTextareaAnswerSideOfferSDP = document.getElementById(
+  "textarea_answerside_offsersdp"
+);
+const g_elementTextareaOfferSideAnswerSDP = document.getElementById(
+  "textarea_offerside_answersdp"
+);
+const g_elementTextareaAnswerSideAnswerSDP = document.getElementById(
+  "textarea_answerside_answersdp"
+);
 const g_elementVideoLocal = document.getElementById("video_local");
+
+let g_rtcPeerConnection = null;
 
 // カメラとマイクのOn/Offのチェックボックスを押すと呼ばれる関数
 const onClickCheckbox_CameraMicrophone = () => {
@@ -120,4 +133,20 @@ const setStreamToElement = (elementMedia, stream) => {
   } else {
     console.error("Unexpected : Unknown ElementTagName : ", elementMedia.tagName);
   }
+};
+
+const onClickButton_CreateOfferSDP = () => {
+  console.log("UI Event: 'Create Offer SDP.' button clicked");
+
+  if (g_rtcPeerConnection) {
+    alert("Connection object already exists.");
+    return;
+  }
+
+  console.log("Call: createPeerConnection()");
+  let rtcPeerConnection = createPeerConnection(g_elementVideoLocal.srcObject);
+  g_rtcPeerConnection = rtcPeerConnection;
+
+  // OfferSDPの作成
+  onClickButton_CreateOfferSDP(rtcPeerConnection);
 };
