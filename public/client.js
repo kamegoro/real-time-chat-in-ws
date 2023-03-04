@@ -105,11 +105,6 @@ const onClickCheckbox_CameraMicrophone = () => {
     });
 };
 
-// HTML要素へのメディアストリームの設定（もしくは解除。および開始）
-// HTML要素は、「ローカルもしくはリモート」の「videoもしくはaudio」。
-// メディアストリームは、ローカルメディアストリームもしくはリモートメディアストリーム、もしくはnull。
-// メディアストリームには、Videoトラック、Audioトラックの両方もしくは片方のみが含まれる。
-// メディアストリームに含まれるトラックの種別、設定するHTML要素種別は、呼び出し側で対処する。
 const setStreamToElement = (elementMedia, stream) => {
   // メディアストリームを、メディア用のHTML要素のsrcObjに設定する。
   // - 古くは、elementVideo.src = URL.createObjectURL( stream ); のように書いていたが、URL.createObjectURL()は、廃止された。
@@ -147,6 +142,97 @@ const onClickButton_CreateOfferSDP = () => {
   let rtcPeerConnection = createPeerConnection(g_elementVideoLocal.srcObject);
   g_rtcPeerConnection = rtcPeerConnection;
 
-  // OfferSDPの作成
   onClickButton_CreateOfferSDP(rtcPeerConnection);
+};
+
+const createPeerConnection = stream => {
+  // RTCPeerConnectionオブジェクトの生成
+  let config = { iceServers: [] };
+  let rtcPeerConnection = new RTCPeerConnection(config);
+
+  // RTCPeerConnectionオブジェクトのイベントハンドラの構築
+  setupRTCPeerConnectionEventHandler(rtcPeerConnection);
+
+  // RTCPeerConnectionオブジェクトのストリームにローカルのメディアストリームを追加
+  if (stream) {
+    stream.getTracks().forEach(track => {
+      rtcPeerConnection.addTrack(track, stream);
+    });
+  } else {
+    console.log("No local stream.");
+  }
+
+  return rtcPeerConnection;
+};
+
+// RTCPeerConnectionオブジェクトのイベントハンドラの構築
+const setupRTCPeerConnectionEventHandler = rtcPeerConnection => {
+  rtcPeerConnection.onnegotiationneeded = () => {
+    console.log("Event: Negotiation needed");
+  };
+
+  rtcPeerConnection.onicecandidate = event => {
+    console.log("Event: ICE candidate");
+
+    if (event.candidate) {
+      console.log("- ICE candidate: ", event.candidate);
+    } else {
+      console.log("- ICE candidate: empty");
+    }
+  };
+
+  rtcPeerConnection.onicecandidateerror = event => {
+    console.error("Event: ICE candidate error. error code: ", event.errorCode);
+  };
+
+  rtcPeerConnection.onicegatheringstatechange = () => {
+    console.log("Event: ICE gathering state change");
+    console.log("- ICE gathering state: ", rtcPeerConnection.iceGatheringState);
+
+    if ("complete" === rtcPeerConnection.iceGatheringState) {
+      console.log("- Set OfferSDP in textarea");
+
+      g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
+      g_elementTextareaOfferSideOfferSDP.focus();
+      g_elementTextareaOfferSideOfferSDP.select();
+    }
+  };
+
+  rtcPeerConnection.oniceconnectionstatechange = () => {
+    console.log("Event: ICE connection state change");
+    console.log("- ICE connection state : ", rtcPeerConnection.iceConnectionState);
+  };
+
+  rtcPeerConnection.onsignalingstatechange = () => {
+    console.log("Event: Signaling state change");
+    console.log("- Signaling state : ", rtcPeerConnection.signalingState);
+  };
+
+  rtcPeerConnection.onconnectionstatechange = () => {
+    console.log("Event: Connection state change");
+    console.log("- Connection state : ", rtcPeerConnection.connectionState);
+  };
+
+  rtcPeerConnection.ontrack = event => {
+    console.log("Event: Track");
+    console.log("- stream", event.streams[0]);
+    console.log("- track", event.track);
+  };
+};
+
+const createOfferSDP = rtcPeerConnection => {
+  console.log("Call: rtcPeerConnection.createOffer()");
+  rtcPeerConnection
+    .createOffer()
+    .then(sessionDescription => {
+      console.log("Call: rtcPeerConnection.setLocalDescription()");
+      return rtcPeerConnection.setLocalDescription(sessionDescription);
+    })
+    .then(() => {
+      // Vanilla ICEの場合は、まだSDPを相手に送らない
+      // Trickle ICEの場合は、初期SDPを相手に送る
+    })
+    .catch(error => {
+      console.error("Error: ", error);
+    });
 };
