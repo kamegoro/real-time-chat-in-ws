@@ -120,6 +120,13 @@ const setStreamToElement = (elementMedia, stream) => {
   }
 };
 
+const setAnswerSDP = (rtcPeerConnection, sessionDescription) => {
+  console.log("Call: rtcPeerConnection.setRemoteDescription()");
+  rtcPeerConnection.setRemoteDescription(sessionDescription).catch(error => {
+    console.error("Error: ", error);
+  });
+};
+
 const onClickButton_CreateOfferSDP = () => {
   console.log("UI Event: 'Create Offer SDP.' button clicked");
   console.log(g_rtcPeerConnection);
@@ -161,6 +168,29 @@ const onClickButton_SetOfferSDPandCreateAnswerSDP = () => {
 
   console.log("Call: setOfferSDP_and_createAnswerSDP()");
   setOfferSDP_and_createAnswerSDP(rtcPeerConnection, sessionDescription);
+};
+
+const onClickButton_SetAnswerSDPthenChatStarts = () => {
+  console.log("UI Event: 'Set AnswerSDP. Then the chat starts.' button clicked");
+
+  if (!g_rtcPeerConnection) {
+    alert("Connection object does not exist.");
+    return;
+  }
+
+  let strAnswerSDP = g_elementTextareaOfferSideAnswerSDP.value;
+  if (!strAnswerSDP) {
+    alert("AnswerSDP is empty. Please enter the AnswerSDP.");
+    return;
+  }
+
+  let sessionDescription = new RTCSessionDescription({
+    type: "answer",
+    sdp: strAnswerSDP,
+  });
+
+  console.log("Call: setAnswerSDP()");
+  setAnswerSDP(g_rtcPeerConnection, sessionDescription);
 };
 
 const createPeerConnection = stream => {
