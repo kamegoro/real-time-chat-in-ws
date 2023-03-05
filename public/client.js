@@ -18,7 +18,6 @@ const g_elementVideoLocal = document.getElementById("video_local");
 
 let g_rtcPeerConnection = null;
 
-// カメラとマイクのOn/Offのチェックボックスを押すと呼ばれる関数
 const onClickCheckbox_CameraMicrophone = () => {
   console.log("UI Event: Camera/Microphone checkbox clicked.");
 
@@ -104,23 +103,16 @@ const onClickCheckbox_CameraMicrophone = () => {
 };
 
 const setStreamToElement = (elementMedia, stream) => {
-  // メディアストリームを、メディア用のHTML要素のsrcObjに設定する。
-  // - 古くは、elementVideo.src = URL.createObjectURL( stream ); のように書いていたが、URL.createObjectURL()は、廃止された。
-  //   現在は、elementVideo.srcObject = stream; のように書く。
   elementMedia.srcObject = stream;
 
   if (!stream) {
-    // メディアストリームの設定解除の場合は、ここで処理終了
     return;
   }
 
-  // 音量
   if ("VIDEO" === elementMedia.tagName) {
-    // VIDEO：ボリュームゼロ、ミュート
     elementMedia.volume = 0.0;
     elementMedia.muted = true;
   } else if ("AUDIO" === elementMedia.tagName) {
-    // AUDIO：ボリュームあり、ミュートでない
     elementMedia.volume = 1.0;
     elementMedia.muted = false;
   } else {
