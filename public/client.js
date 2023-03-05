@@ -91,12 +91,10 @@ const onClickCheckbox_CameraMicrophone = () => {
   navigator.mediaDevices
     .getUserMedia({ video: bCamera_new, audio: bMicrophone_new })
     .then(stream => {
-      // HTML要素へのメディアストリームの設定
       console.log("Call : setStreamToElement( Video_Local, stream )");
       setStreamToElement(g_elementVideoLocal, stream);
     })
     .catch(error => {
-      // メディアストリームの取得に失敗⇒古いメディアストリームのまま。チェックボックスの状態を戻す。
       console.error("Error : ", error);
       alert("Could not start Camera.");
       g_elementCheckboxCamera.checked = false;
@@ -132,6 +130,7 @@ const setStreamToElement = (elementMedia, stream) => {
 
 const onClickButton_CreateOfferSDP = () => {
   console.log("UI Event: 'Create Offer SDP.' button clicked");
+  console.log(g_rtcPeerConnection);
 
   if (g_rtcPeerConnection) {
     alert("Connection object already exists.");
@@ -142,7 +141,34 @@ const onClickButton_CreateOfferSDP = () => {
   let rtcPeerConnection = createPeerConnection(g_elementVideoLocal.srcObject);
   g_rtcPeerConnection = rtcPeerConnection;
 
-  onClickButton_CreateOfferSDP(rtcPeerConnection);
+  createOfferSDP(rtcPeerConnection);
+};
+
+const onClickButton_SetOfferSDPandCreateAnswerSDP = () => {
+  console.log("UI Event: 'Set OfferSDP and Create AnswerSDP.' button clicked");
+
+  if (g_rtcPeerConnection) {
+    alert("Connection object already exists.");
+    return;
+  }
+
+  let strOfferSDP = g_elementTextareaAnswerSideOfferSDP.value;
+  if (!strOfferSDP) {
+    alert("OfferSDP is empty. Please enter the OfferSDP.");
+    return;
+  }
+
+  console.log("Call: createPeerConnection()");
+  let rtcPeerConnection = createPeerConnection(g_elementVideoLocal.srcObject);
+  g_rtcPeerConnection = rtcPeerConnection;
+
+  let sessionDescription = new RTCSessionDescription({
+    type: "offer",
+    sdp: strOfferSDP,
+  });
+
+  console.log("Call: setOfferSDP_and_createAnswerSDP()");
+  setOfferSDP_and_createAnswerSDP(rtcPeerConnection, sessionDescription);
 };
 
 const createPeerConnection = stream => {
@@ -165,7 +191,6 @@ const createPeerConnection = stream => {
   return rtcPeerConnection;
 };
 
-// RTCPeerConnectionオブジェクトのイベントハンドラの構築
 const setupRTCPeerConnectionEventHandler = rtcPeerConnection => {
   rtcPeerConnection.onnegotiationneeded = () => {
     console.log("Event: Negotiation needed");
@@ -190,11 +215,24 @@ const setupRTCPeerConnectionEventHandler = rtcPeerConnection => {
     console.log("- ICE gathering state: ", rtcPeerConnection.iceGatheringState);
 
     if ("complete" === rtcPeerConnection.iceGatheringState) {
-      console.log("- Set OfferSDP in textarea");
+      if ("offer" === rtcPeerConnection.localDescription.type) {
+        console.log("- Set OfferSDP in textarea");
 
-      g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
-      g_elementTextareaOfferSideOfferSDP.focus();
-      g_elementTextareaOfferSideOfferSDP.select();
+        g_elementTextareaOfferSideOfferSDP.value = rtcPeerConnection.localDescription.sdp;
+        g_elementTextareaOfferSideOfferSDP.focus();
+        g_elementTextareaOfferSideOfferSDP.select();
+      } else if ("answer" === rtcPeerConnection.localDescription.type) {
+        console.log("- Set AnswerSDP in textarea");
+        g_elementTextareaAnswerSideAnswerSDP.value =
+          rtcPeerConnection.localDescription.sdp;
+        g_elementTextareaAnswerSideAnswerSDP.focus();
+        g_elementTextareaAnswerSideAnswerSDP.select();
+      } else {
+        console.error(
+          "Unexpected: Unknown localDescription.type. type = ",
+          rtcPeerConnection.localDescription.type
+        );
+      }
     }
   };
 
@@ -232,6 +270,25 @@ const createOfferSDP = rtcPeerConnection => {
       // Vanilla ICEの場合は、まだSDPを相手に送らない
       // Trickle ICEの場合は、初期SDPを相手に送る
     })
+    .catch(error => {
+      console.error("Error: ", error);
+    });
+};
+
+const setOfferSDP_and_createAnswerSDP = (rtcPeerConnection, sessionDescription) => {
+  console.log("Call: rtcPeerConnection.setRemoteDescription()");
+
+  rtcPeerConnection
+    .setRemoteDescription(sessionDescription)
+    .then(() => {
+      console.log("Call: rtcPeerConnection.createAnswer()");
+      return rtcPeerConnection.createAnswer();
+    })
+    .then(sessionDescription => {
+      console.log("Call: rtcPeerConnection.setLocalDescription()");
+      return rtcPeerConnection.setLocalDescription(sessionDescription);
+    })
+    .then(() => {})
     .catch(error => {
       console.error("Error: ", error);
     });
