@@ -1,20 +1,32 @@
-"use strict"; // 厳格モードとする
+"use strict";
 
-// モジュール
 const express = require("express");
 const http = require("http");
+const socketIO = require("socket.io");
 
-// オブジェクト
 const app = express();
 const server = http.Server(app);
+const io = socketIO(server);
 
-// 定数
 const PORT = process.env.PORT || 1337;
 
-// 公開フォルダの指定
+io.on("connection", socket => {
+  console.log("connection: ", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("disconnect: ", socket.id);
+  });
+
+  socket.on("signaling", objData => {
+    console.log("signaling: ", socket.id);
+    console.log("- type: ", objData.type);
+
+    socket.broadcast.emit("signaling", objData);
+  });
+});
+
 app.use(express.static(__dirname + "/public"));
 
-// サーバーの起動
 server.listen(PORT, () => {
   console.log("Server on port %d", PORT);
 });

@@ -39,7 +39,7 @@
     ></video>
     <audio id="audio_remote" autoplay></audio>
 
-    <table border="1">
+    <!-- <table border="1">
       <tbody>
         <tr>
           <td></td>
@@ -88,9 +88,13 @@
           </td>
         </tr>
       </tbody>
-    </table>
+    </table> -->
+
+    <br />
+    <button onclick="onClickButton_SendOfferSDP()">Send OfferSDP.</button>
 
     <!-- Script -->
+    <script src="/socket.io/socket.io.js"></script>
     <script src="./client.js"></script>
   </body>
 </html>
